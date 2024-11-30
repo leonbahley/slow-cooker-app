@@ -1,0 +1,1 @@
+export { MealListSkeleton } from "./MealListSkeleton";

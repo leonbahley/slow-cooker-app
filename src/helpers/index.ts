@@ -1,0 +1,1 @@
+export { secondsToTime } from "./secondsToTime";
