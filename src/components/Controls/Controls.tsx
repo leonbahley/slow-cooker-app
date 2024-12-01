@@ -1,11 +1,6 @@
-import React from "react";
 import { CookerContext } from "../../main";
 
-interface IProps {
-  temperature: number | undefined;
-}
-
-export const Controls: React.FC<IProps> = (props) => {
+export const Controls = () => {
   const cookerActor = CookerContext.useActorRef();
   const cookerState = CookerContext.useSelector((state) => state);
 
@@ -19,7 +14,6 @@ export const Controls: React.FC<IProps> = (props) => {
         onClick={() => {
           cookerActor.send({
             type: "LOAD_MEAL",
-            temperature: props.temperature,
           });
         }}
       >

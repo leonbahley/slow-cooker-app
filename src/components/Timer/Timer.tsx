@@ -1,13 +1,8 @@
-import React from "react";
 import { CookerContext } from "../../main";
 import { secondsToTime } from "../../helpers";
 import { cn } from "../../utils";
 
-interface IProps {
-  setTemperature: (value: number) => void;
-}
-
-export const Timer: React.FC<IProps> = (props) => {
+export const Timer = () => {
   const cookerState = CookerContext.useSelector((state) => state);
   const cookerActor = CookerContext.useActorRef();
 
@@ -29,7 +24,12 @@ export const Timer: React.FC<IProps> = (props) => {
         {cookerState.context.recipes[0]?.mode === "Custom" && (
           <div className="flex gap-2">
             <input
-              onChange={(e) => props.setTemperature(Number(e.target.value))}
+              onChange={(e) =>
+                cookerActor.send({
+                  type: "SET_TEMPERATURE",
+                  temperature: Number(e.target.value),
+                })
+              }
               type="number"
               className="border"
             />

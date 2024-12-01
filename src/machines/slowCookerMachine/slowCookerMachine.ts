@@ -1,4 +1,4 @@
-import { assertEvent, assign, fromPromise, setup } from "xstate";
+import { assign, fromPromise, setup } from "xstate";
 import { Meal } from "../../interfaces";
 import { fetchRecipes } from "./actors/fetchRecipes";
 
@@ -11,10 +11,16 @@ export const slowCookerMachine = setup({
     }),
   },
   types: {
-    context: {} as { recipes: Meal[]; error: null | string; timer: number },
+    context: {} as {
+      recipes: Meal[];
+      error: null | string;
+      timer: number;
+      temperature: number;
+    },
     events: {} as
       | { type: "LOAD_RECIPES" }
-      | { type: "LOAD_MEAL"; temperature: number | undefined }
+      | { type: "SET_TEMPERATURE"; temperature: number }
+      | { type: "LOAD_MEAL" }
       | { type: "PAUSE" }
       | { type: "FINISH" }
       | { type: "RESUME" }
@@ -23,11 +29,10 @@ export const slowCookerMachine = setup({
   },
   actions: {
     addTemperatureError: assign({
-      error: ({ context, event }) => {
-        assertEvent(event, "LOAD_MEAL");
+      error: ({ context }) => {
         if (
           context.recipes[0].mode !== "Preset" &&
-          context.recipes[0].temperature !== event.temperature
+          context.recipes[0].temperature !== context.temperature
         ) {
           return "The temperature is incorrect";
         }
@@ -37,17 +42,16 @@ export const slowCookerMachine = setup({
     }),
   },
   guards: {
-    isTemperatureValid: ({ context, event }) => {
-      assertEvent(event, "LOAD_MEAL");
+    isTemperatureValid: ({ context }) => {
       if (context.recipes[0].mode === "Preset") {
         return true;
       }
 
-      return context.recipes[0].temperature === event.temperature;
+      return context.recipes[0].temperature === context.temperature;
     },
   },
 }).createMachine({
-  context: { recipes: [], error: null, timer: 0 },
+  context: { recipes: [], error: null, timer: 0, temperature: 0 },
   id: "slowCooker",
   initial: "idle",
   states: {
@@ -55,6 +59,9 @@ export const slowCookerMachine = setup({
       on: {
         LOAD_RECIPES: {
           target: "loadingRecipes",
+        },
+        SET_TEMPERATURE: {
+          actions: assign({ temperature: ({ event }) => event.temperature }),
         },
         LOAD_MEAL: [
           {

@@ -8,7 +8,6 @@ import { Controls } from "./components/Controls";
 export const App = () => {
   const cookerActor = CookerContext.useActorRef();
   const cookerState = CookerContext.useSelector((state) => state);
-  const [temperature, setTemperature] = React.useState<number>();
 
   React.useEffect(() => {
     cookerActor.send({ type: "LOAD_RECIPES" });
@@ -31,8 +30,8 @@ export const App = () => {
           {cookerState.context.error}
         </p>
       )}
-      <Controls temperature={temperature} />
-      <Timer setTemperature={setTemperature} />
+      <Controls />
+      <Timer />
       {(cookerState.matches("paused") ||
         cookerState.matches({ cooking: "running" })) && (
         <h2 className="text-center mt-5 text-2xl">
