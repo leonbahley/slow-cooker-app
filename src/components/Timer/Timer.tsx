@@ -10,43 +10,18 @@ interface IProps {
 export const Timer: React.FC<IProps> = (props) => {
   const cookerState = CookerContext.useSelector((state) => state);
   const cookerActor = CookerContext.useActorRef();
-  const [timer, setTimer] = React.useState<number>(0);
-
-  React.useEffect(() => {
-    if (!["cooking", "paused"].includes(cookerState.value)) {
-      setTimer(cookerState.context.recipes[0]?.cookingTime);
-      return;
-    }
-
-    let interval: ReturnType<typeof setInterval>;
-    interval = setInterval(() => {
-      setTimer((prev) => {
-        if (prev - 1 <= 0) {
-          alert("Food burning");
-          clearInterval(interval);
-          return 0;
-        }
-
-        return prev - 1;
-      });
-    }, 1000);
-
-    if (cookerState.value === "paused") {
-      clearInterval(interval);
-    }
-
-    return () => clearInterval(interval);
-  }, [cookerState.value]);
 
   return (
     <div className="shadow-md w-1/2 h-52 border rounded-md flex items-center justify-around mx-auto">
       <div className="flex gap-3 items-center">
-        <span className="text-6xl font-bold">{secondsToTime(timer)}</span>
+        <span className="text-6xl font-bold">
+          {secondsToTime(cookerState.context.timer)}
+        </span>
         <div
           className={cn("rounded-full h-7 w-7", {
-            "bg-green-500": cookerState.value === "idle",
-            "bg-orange-400": cookerState.value === "cooking",
-            "bg-red-600": cookerState.value === "finished",
+            "bg-green-500": cookerState.matches("idle"),
+            "bg-orange-400": cookerState.matches({ cooking: "running" }),
+            "bg-red-600": cookerState.matches("finished"),
           })}
         />
       </div>
@@ -62,7 +37,7 @@ export const Timer: React.FC<IProps> = (props) => {
           </div>
         )}
         <button
-          disabled={cookerState.value !== "cooking"}
+          disabled={!cookerState.matches({ cooking: "running" })}
           className="rounded-md py-1 border enabled:hover:bg-slate-300 text-xs disabled:opacity-50 min-w-52"
           onClick={() => {
             cookerActor.send({ type: "PAUSE" });
@@ -71,7 +46,7 @@ export const Timer: React.FC<IProps> = (props) => {
           PAUSE
         </button>
         <button
-          disabled={cookerState.value !== "paused"}
+          disabled={!cookerState.matches("paused")}
           className="rounded-md py-1 border enabled:hover:bg-slate-300 text-xs disabled:opacity-50 min-w-52"
           onClick={() => {
             cookerActor.send({ type: "RESUME" });

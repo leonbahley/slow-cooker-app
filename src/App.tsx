@@ -17,7 +17,7 @@ export const App = () => {
   return (
     <main className="py-4">
       <h1 className="text-5xl text-center mb-11">SlowCooker App</h1>
-      {cookerState.value === "loadingRecipes" ? (
+      {cookerState.matches("loadingRecipes") ? (
         <MealListSkeleton />
       ) : (
         <ul className="flex gap-6 flex-wrap justify-center items-center">
@@ -33,7 +33,8 @@ export const App = () => {
       )}
       <Controls temperature={temperature} />
       <Timer setTemperature={setTemperature} />
-      {["cooking", "paused"].includes(cookerState.value) && (
+      {(cookerState.matches("paused") ||
+        cookerState.matches({ cooking: "running" })) && (
         <h2 className="text-center mt-5 text-2xl">
           You are cooking You are cooking {cookerState.context.recipes[0].name}
         </h2>

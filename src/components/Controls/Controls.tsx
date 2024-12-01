@@ -13,7 +13,7 @@ export const Controls: React.FC<IProps> = (props) => {
     <div className="flex gap-5 my-10 justify-center">
       <button
         disabled={
-          !cookerState.context.recipes.length || cookerState.value !== "idle"
+          !cookerState.context.recipes.length || !cookerState.matches("idle")
         }
         className="btn-primary"
         onClick={() => {
@@ -26,7 +26,7 @@ export const Controls: React.FC<IProps> = (props) => {
         LOAD MEAL
       </button>
       <button
-        disabled={cookerState.value !== "cooking"}
+        disabled={!cookerState.matches({ cooking: "running" })}
         className="btn-primary"
         onClick={() => {
           cookerActor.send({ type: "FINISH" });
@@ -35,7 +35,7 @@ export const Controls: React.FC<IProps> = (props) => {
         FINISH COOKING
       </button>
       <button
-        disabled={cookerState.value !== "finished"}
+        disabled={!cookerState.matches("finished")}
         className="btn-primary"
         onClick={() => {
           cookerActor.send({ type: "EMPTY_COOKER" });
@@ -44,7 +44,7 @@ export const Controls: React.FC<IProps> = (props) => {
         EMPTY COOKER
       </button>
       <button
-        disabled={cookerState.value !== "paused"}
+        disabled={!cookerState.matches("paused")}
         className="btn-primary"
         onClick={() => {
           cookerActor.send({ type: "STOP" });

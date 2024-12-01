@@ -11,7 +11,7 @@ export const slowCookerMachine = setup({
     }),
   },
   types: {
-    context: {} as { recipes: Meal[]; error: null | string },
+    context: {} as { recipes: Meal[]; error: null | string; timer: number },
     events: {} as
       | { type: "LOAD_RECIPES" }
       | { type: "LOAD_MEAL"; temperature: number | undefined }
@@ -47,7 +47,7 @@ export const slowCookerMachine = setup({
     },
   },
 }).createMachine({
-  context: { recipes: [], error: null },
+  context: { recipes: [], error: null, timer: 0 },
   id: "slowCooker",
   initial: "idle",
   states: {
@@ -62,6 +62,7 @@ export const slowCookerMachine = setup({
             target: "cooking",
             actions: assign({
               error: () => null,
+              timer: ({ context }) => context.recipes[0].cookingTime,
             }),
           },
           {
@@ -84,12 +85,29 @@ export const slowCookerMachine = setup({
       },
     },
     cooking: {
-      on: {
-        PAUSE: {
-          target: "paused",
-        },
-        FINISH: {
-          target: "finished",
+      initial: "running",
+      states: {
+        running: {
+          after: {
+            1000: [
+              {
+                guard: ({ context }) => !!context.timer,
+                actions: assign({
+                  timer: ({ context }) => context.timer - 1,
+                }),
+                target: "#slowCooker.cooking",
+              },
+              { target: "#slowCooker.finished" },
+            ],
+          },
+          on: {
+            PAUSE: {
+              target: "#slowCooker.paused",
+            },
+            FINISH: {
+              target: "#slowCooker.finished",
+            },
+          },
         },
       },
     },
@@ -108,6 +126,7 @@ export const slowCookerMachine = setup({
         EMPTY_COOKER: {
           actions: assign({
             recipes: ({ context }) => context.recipes.slice(1),
+            timer: 0,
           }),
           target: "idle",
         },
